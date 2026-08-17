@@ -1,0 +1,207 @@
+@model TicketingSystem.Models.TicketDashboard
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container mt-4">
+
+    <div class="mb-4">
+        <h1>Ticketing & Customer Support Analytics</h1>
+        <p class="text-muted">
+            Service quality dashboard for support ticket monitoring.
+        </p>
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Tickets</h6>
+                    <h2>@Model.TotalTickets</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Open</h6>
+                    <h2>@Model.OpenTickets</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">In Progress</h6>
+                    <h2>@Model.InProgressTickets</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Resolved / Closed</h6>
+                    <h2>@Model.ResolvedTickets</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">
+                        Average Resolution Time
+                    </h6>
+
+                    <h2>
+                        @Model.AverageResolutionTimeHours.ToString("F2")
+                        hours
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">
+                        SLA Compliance
+                    </h6>
+
+                    <h2>
+                        @Model.SlaCompliancePercentage.ToString("F1")%
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-3">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    Tickets by Priority
+                </div>
+
+                <div class="card-body">
+
+                    @if (Model.TicketsByPriority.Any())
+                    {
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Priority</th>
+                                    <th>Tickets</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var item in Model.TicketsByPriority)
+                                {
+                                    <tr>
+                                        <td>@item.Key</td>
+                                        <td>@item.Value</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p>No ticket data available.</p>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    Tickets by Category
+                </div>
+
+                <div class="card-body">
+
+                    @if (Model.TicketsByCategory.Any())
+                    {
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Tickets</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var item in Model.TicketsByCategory)
+                                {
+                                    <tr>
+                                        <td>@item.Key</td>
+                                        <td>@item.Value</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p>No ticket data available.</p>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    Tickets by Channel
+                </div>
+
+                <div class="card-body">
+
+                    @if (Model.TicketsByChannel.Any())
+                    {
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Channel</th>
+                                    <th>Tickets</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var item in Model.TicketsByChannel)
+                                {
+                                    <tr>
+                                        <td>@item.Key</td>
+                                        <td>@item.Value</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p>No ticket data available.</p>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

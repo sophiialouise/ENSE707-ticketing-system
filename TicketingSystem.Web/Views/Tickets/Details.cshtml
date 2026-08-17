@@ -1,0 +1,288 @@
+@model TicketingSystem.Models.Ticket
+
+@{
+    ViewData["Title"] = "Ticket Details";
+    var history = ViewBag.History as List<object>;
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1>Ticket Details</h1>
+            <p class="text-muted mb-0">
+                @Model.Id
+            </p>
+        </div>
+
+        <a
+            asp-controller="Tickets"
+            asp-action="Index"
+            class="btn btn-outline-secondary">
+            Back to Tickets
+        </a>
+
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="row g-4">
+
+        <div class="col-md-8">
+
+            <div class="card shadow-sm">
+
+                <div class="card-header">
+                    Ticket Information
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Customer</strong>
+                        </div>
+
+                        <div class="col-md-8">
+                            @Model.CustomerName
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Email</strong>
+                        </div>
+
+                        <div class="col-md-8">
+                            @Model.CustomerEmail
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Category</strong>
+                        </div>
+
+                        <div class="col-md-8">
+                            @Model.Category
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Priority</strong>
+                        </div>
+
+                        <div class="col-md-8">
+                            @Model.Priority
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Status</strong>
+                        </div>
+
+                        <div class="col-md-8">
+                            @Model.Status
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Assigned To</strong>
+                        </div>
+
+                        <div class="col-md-8">
+                            @Model.AssignedTo
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Channel</strong>
+                        </div>
+
+                        <div class="col-md-8">
+                            @Model.Channel
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Created</strong>
+                        </div>
+
+                        <div class="col-md-8">
+                            @Model.CreatedAt.ToString(
+                                "dd MMM yyyy HH:mm")
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Description</strong>
+                        </div>
+
+                        <div class="col-md-8">
+                            @Model.Description
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card shadow-sm">
+
+                <div class="card-header">
+                    Update Status
+                </div>
+
+                <div class="card-body">
+
+                    <form
+                        asp-controller="Tickets"
+                        asp-action="UpdateStatus"
+                        method="post">
+
+                        <input
+                            type="hidden"
+                            name="id"
+                            value="@Model.Id" />
+
+                        <div class="mb-3">
+
+                            <label
+                                for="newStatus"
+                                class="form-label">
+                                New Status
+                            </label>
+
+                            <select
+                                id="newStatus"
+                                name="newStatus"
+                                class="form-select"
+                                required>
+
+                                <option value="">
+                                    Select status
+                                </option>
+
+                                <option value="Open">
+                                    Open
+                                </option>
+
+                                <option value="In Progress">
+                                    In Progress
+                                </option>
+
+                                <option value="Resolved">
+                                    Resolved
+                                </option>
+
+                                <option value="Closed">
+                                    Closed
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary">
+                            Update Status
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm mt-4">
+
+        <div class="card-header">
+            Ticket History
+        </div>
+
+        <div class="card-body">
+
+            @if (history != null && history.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table">
+
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Event</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var entry in history)
+                            {
+                                var type = entry.GetType();
+
+                                var timestamp =
+                                    type.GetProperty("Timestamp")
+                                        ?.GetValue(entry);
+
+                                var eventName =
+                                    type.GetProperty("Event")
+                                        ?.GetValue(entry);
+
+                                var details =
+                                    type.GetProperty("Details")
+                                        ?.GetValue(entry);
+
+                                <tr>
+                                    <td>@timestamp</td>
+                                    <td>@eventName</td>
+                                    <td>@details</td>
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <p class="mb-0">
+                    No history is available for this ticket.
+                </p>
+            }
+
+        </div>
+
+    </div>
+
+</div>

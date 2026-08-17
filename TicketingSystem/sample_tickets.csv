@@ -1,0 +1,11 @@
+CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt
+John Smith,john.smith@email.com,Technical Support,High,Resolved,Alice,Email,Unable to login to system,2026-07-01 10:00:00,2026-07-01 14:00:00
+Jane Doe,jane.doe@email.com,Billing,Medium,Open,Bob,Phone,Invoice discrepancy,2026-07-02 09:30:00,
+Bob Johnson,bob.johnson@email.com,General Inquiry,Low,In Progress,Alice,Email,Product availability question,2026-07-03 11:00:00,
+Sarah Wilson,sarah.wilson@email.com,Technical Support,Critical,Resolved,Charlie,Email,Service outage affecting customers,2026-07-03 08:00:00,2026-07-03 10:30:00
+Mike Brown,mike.brown@email.com,Account,Medium,Open,Bob,Phone,Cannot reset password,2026-07-04 14:00:00,
+Emily Davis,emily.davis@email.com,Feedback,Low,Closed,Alice,Email,Feature request,2026-07-01 16:00:00,2026-07-02 10:00:00
+David Lee,david.lee@email.com,Technical Support,High,Resolved,Charlie,Email,Slow application performance,2026-07-05 09:00:00,2026-07-05 15:00:00
+Lisa Anderson,lisa.anderson@email.com,Billing,Critical,Open,Bob,Phone,Payment processing error,2026-07-06 10:00:00,
+Tom Harris,tom.harris@email.com,General Inquiry,Low,Open,Alice,Email,Opening hours inquiry,2026-07-07 08:00:00,
+Rachel Green,rachel.green@email.com,Technical Support,Medium,In Progress,Charlie,Email,Software installation help,2026-07-07 13:00:00,

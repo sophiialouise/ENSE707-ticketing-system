@@ -103,4 +103,58 @@ public class TicketServiceTests
         Assert.AreEqual(50.0, Convert.ToDouble(compliance), 0.1);
         File.Delete(tempFile);
     }
+
+
+    [TestMethod]
+    public void GetTicketHistory_ThroughLifecycle_TracesCreationToResolution()
+    {
+        // arrange
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\nTest User,test@email.com,Support,High,Open,Alice,Email,Test ticket,2026-07-01 10:00:00,");
+        var result = service.ImportTicketsFromCsv(tempFile);
+        var ticketId = result.ValidTickets.First().Id;
+        service.UpdateTicketStatus(ticketId, "In Progress");
+        service.UpdateTicketStatus(ticketId, "Resolved");
+
+        // act
+        var history = service.GetTicketHistory(ticketId);
+
+        // assert
+        Assert.AreEqual(3, history.Count);
+
+        var events = history
+            .Select(h => h.GetType().GetProperty("Event")?.GetValue(h)?.ToString())
+            .ToList();
+
+        CollectionAssert.Contains(events, "Ticket created");
+        CollectionAssert.Contains(events, "First response");
+        CollectionAssert.Contains(events, "Ticket resolved");
+        File.Delete(tempFile);
+    }
+
+
+    [TestMethod]
+    public void UpdateTicketStatus_ThroughLifecycle_RecordsResponseAndResolutionTimes()
+    {
+        // arrange
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\nTest User,test@email.com,Support,High,Open,Alice,Email,Test ticket,2026-07-01 10:00:00,");
+        var result = service.ImportTicketsFromCsv(tempFile);
+        var ticketId = result.ValidTickets.First().Id;
+
+        // act
+        service.UpdateTicketStatus(ticketId, "In Progress");
+        service.UpdateTicketStatus(ticketId, "Resolved");
+        var ticket = service.GetTicketById(ticketId);
+
+        // assert
+        Assert.IsNotNull(ticket?.FirstResponseAt);
+        Assert.IsNotNull(ticket?.ResolvedAt);
+        Assert.IsTrue(ticket!.ResponseTimeHours >= 0);
+        Assert.IsTrue(ticket.ResolutionTimeHours >= ticket.ResponseTimeHours);
+        File.Delete(tempFile);
+    }
+
 }

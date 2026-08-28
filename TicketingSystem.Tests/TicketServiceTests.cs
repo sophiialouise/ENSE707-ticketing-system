@@ -157,4 +157,25 @@ public class TicketServiceTests
         File.Delete(tempFile);
     }
 
+    [TestMethod]
+    public void GetDashboard_FilteredByCategory_ReturnsOnlyMatchingTickets()
+    {
+        // arrange
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\nUser1,test@email.com,Support,High,Open,Alice,Email,Ticket1,2026-07-01 10:00:00,\nUser2,test2@email.com,Billing,Low,Open,Bob,Phone,Ticket2,2026-07-02 10:00:00,");
+        service.ImportTicketsFromCsv(tempFile);
+
+        var filter = new TicketFilter { Category = "Support" };
+
+        // act
+        var dashboard = service.GetDashboard(filter);
+
+        // assert
+        Assert.AreEqual(1, dashboard.TotalTickets);
+        Assert.IsTrue(dashboard.TicketsByCategory.ContainsKey("Support"));
+        Assert.IsFalse(dashboard.TicketsByCategory.ContainsKey("Billing"));
+        File.Delete(tempFile);
+    }
+
 }

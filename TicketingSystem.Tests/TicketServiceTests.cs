@@ -88,7 +88,7 @@ public class TicketServiceTests
         // arrange
         var service = new TicketService();
         var tempFile = Path.GetTempFileName();
-        File.WriteAllText(tempFile, "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\nUser1,test@email.com,Support,Critical,Resolved,Alice,Email,Ticket1,2026-07-01 10:00:00,2026-07-01 13:00:00\nUser2,test2@email.com,Billing,High,Resolved,Bob,Phone,Ticket2,2026-07-02 10:00:00,2026-07-03 10:00:00");
+        File.WriteAllText(tempFile, "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\nUser1,test@email.com,Support,Critical,Resolved,Alice,Email,Ticket1,2026-07-01 10:00:00,2026-07-01 14:00:00\nUser2,test2@email.com,Billing,High,Resolved,Bob,Phone,Ticket2,2026-07-02 10:00:00,2026-07-03 10:00:00");
         service.ImportTicketsFromCsv(tempFile);
 
         // act
@@ -175,6 +175,27 @@ public class TicketServiceTests
         Assert.AreEqual(1, dashboard.TotalTickets);
         Assert.IsTrue(dashboard.TicketsByCategory.ContainsKey("Support"));
         Assert.IsFalse(dashboard.TicketsByCategory.ContainsKey("Billing"));
+        File.Delete(tempFile);
+    }
+
+    [TestMethod]
+    public void UpdateTicketStatus_InvalidStatus_RejectsAndPreservesState()
+    {
+        // arrange
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\nTest User,test@email.com,Support,High,Open,Alice,Email,Test ticket,2026-07-01 10:00:00,");
+        var result = service.ImportTicketsFromCsv(tempFile);
+        var ticketId = result.ValidTickets.First().Id;
+
+        // act
+        var success = service.UpdateTicketStatus(ticketId, "InvalidStatus");
+
+        // assert
+        Assert.IsFalse(success);
+        var ticket = service.GetTicketById(ticketId);
+        Assert.AreEqual("Open", ticket?.Status);
+        Assert.IsNull(ticket?.ResolvedAt);
         File.Delete(tempFile);
     }
 

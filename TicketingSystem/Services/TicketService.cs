@@ -7,6 +7,7 @@ namespace TicketingSystem.Services;
 /// core service for managing tickets.
 public class TicketService
 {
+    // the mid-project prototype keeps ticket data in memory rather than a database
     private readonly List<Ticket> _tickets = new();
     private int _nextId = 1;
 
@@ -30,6 +31,7 @@ public class TicketService
                 if (ValidateTicket(ticket, out string error))
                 {
                     ticket.IsValid = true;
+                    // assign an id only after the imported record has passed validation
                     ticket.Id = $"TICKET-{_nextId++:D4}";
                     result.ValidTickets.Add(ticket);
                 }
@@ -72,6 +74,7 @@ public class TicketService
             AssignedTo = GetValue(record, "AssignedTo"),
             Channel = GetValue(record, "Channel"),
             Description = GetValue(record, "Description"),
+            // known limitation: invalid created dates currently fall back to the import time
             CreatedAt = ParseDate(GetValue(record, "CreatedAt"), DateTime.Now),
             ResolvedAt = ParseNullableDate(GetValue(record, "ResolvedAt"))
         };
@@ -114,6 +117,8 @@ public class TicketService
     /// <summary>
     /// validates a ticket record.
     /// </summary>
+
+    // check required fields and timestamp order before accepting the record
     private bool ValidateTicket(Ticket ticket, out string error)
     {
         error = string.Empty;
@@ -148,6 +153,7 @@ public class TicketService
     {
         var query = _tickets.AsQueryable();
 
+        // only apply filters that were supplied by the user
         if (filter != null)
         {
             if (filter.StartDate.HasValue)
@@ -211,6 +217,7 @@ public class TicketService
     {
         var tickets = GetTickets(filter);
 
+        // only tickets with recorded timestamps are included in timing calculations
         var resolvedTickets = tickets
             .Where(t => t.ResolvedAt.HasValue)
             .ToList();
@@ -287,6 +294,7 @@ public class TicketService
             return false;
         }
 
+        // restrict status updates to the workflow states supported by the prototype
         var validStatuses = new[]
         {
             "Open",
@@ -307,12 +315,14 @@ public class TicketService
 
         ticket.Status = matchedStatus;
 
+        // record the first staff response the first time a ticket enters in progress
         if (matchedStatus == "In Progress" &&
             !ticket.FirstResponseAt.HasValue)
         {
             ticket.FirstResponseAt = DateTime.Now;
         }
 
+        // resolved and closed tickets receive a completion timestamp
         if (matchedStatus == "Resolved" ||
             matchedStatus == "Closed")
         {
@@ -372,6 +382,7 @@ public class TicketService
             return new List<object>();
         }
 
+        // build the available history from the timestamps currently stored on the ticket
         var history = new List<object>
         {
             new

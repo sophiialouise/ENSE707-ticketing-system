@@ -3,6 +3,7 @@ using TicketingSystem.Services;
 
 namespace TicketingSystem.Web.Controllers;
 
+// handles csv file uploads from the web interface
 public class ImportController : Controller
 {
     private readonly TicketService _ticketService;
@@ -21,12 +22,14 @@ public class ImportController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index(IFormFile? file)
     {
+        // reject missing or empty uploads before processing
         if (file == null || file.Length == 0)
         {
             ViewBag.ErrorMessage = "Please select a CSV file.";
             return View();
         }
 
+        // only csv files are supported by the import service
         if (!string.Equals(
                 Path.GetExtension(file.FileName),
                 ".csv",
@@ -36,6 +39,7 @@ public class ImportController : Controller
             return View();
         }
 
+        // save the upload temporarily because the service imports from a file path
         var tempPath = Path.Combine(
             Path.GetTempPath(),
             $"{Guid.NewGuid()}.csv");
@@ -56,6 +60,7 @@ public class ImportController : Controller
         {
             if (System.IO.File.Exists(tempPath))
             {
+                // always remove the temporary upload after processing
                 System.IO.File.Delete(tempPath);
             }
         }

@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TicketingSystem.Tests;
 
+// tests ticket import, calculations, filtering, status changes and ticket history
 [TestClass]
 public class TicketServiceTests
 {
@@ -18,7 +19,7 @@ public class TicketServiceTests
         // act
         var result = service.ImportTicketsFromCsv(tempFile);
 
-        // Assert
+        // assert
         Assert.AreEqual(1, result.ValidRecords);
         Assert.AreEqual(0, result.InvalidRecords);
         File.Delete(tempFile);
@@ -55,7 +56,7 @@ public class TicketServiceTests
         // act
         var success = service.UpdateTicketStatus(ticketId, "Resolved");
 
-        // Assert
+        // assert
         Assert.IsTrue(success);
         var ticket = service.GetTicketById(ticketId);
         Assert.AreEqual("Resolved", ticket?.Status);

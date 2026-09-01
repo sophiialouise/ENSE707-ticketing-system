@@ -2,6 +2,7 @@ using TicketingSystem.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// register mvc controllers and razor views
 builder.Services.AddControllersWithViews();
 
 // keep one ticket service instance while the web app is running
@@ -22,6 +23,7 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
+// use the dashboard as the default page when the application starts
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Dashboard}/{action=Index}/{id?}")

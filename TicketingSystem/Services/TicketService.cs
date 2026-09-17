@@ -61,6 +61,9 @@ public class TicketService
     {
         var priority = GetValue(record, "Priority");
         var status = GetValue(record, "Status");
+        var createdAtRaw = (string)GetValue(record, "CreatedAt");
+
+        var createdAtValid = DateTime.TryParse(createdAtRaw, out var createdAt);
 
         return new Ticket
         {
@@ -72,7 +75,8 @@ public class TicketService
             AssignedTo = GetValue(record, "AssignedTo"),
             Channel = GetValue(record, "Channel"),
             Description = GetValue(record, "Description"),
-            CreatedAt = ParseDate(GetValue(record, "CreatedAt"), DateTime.Now),
+            CreatedAt = createdAtValid ? createdAt : DateTime.Now,
+            CreatedAtIsValid = createdAtValid,
             ResolvedAt = ParseNullableDate(GetValue(record, "ResolvedAt"))
         };
     }
@@ -138,6 +142,10 @@ public class TicketService
                  ticket.ResolvedAt.Value < ticket.CreatedAt)
         {
             error = "Resolved time cannot be before created time.";
+        }
+        else if (!ticket.CreatedAtIsValid)
+        {
+            error = "Created time is invalid or missing.";
         }
 
         return string.IsNullOrEmpty(error);

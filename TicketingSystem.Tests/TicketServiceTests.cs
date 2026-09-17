@@ -178,4 +178,116 @@ public class TicketServiceTests
         File.Delete(tempFile);
     }
 
+    [TestMethod]
+    public void ImportTicketsFromCsv_MissingCustomerName_FlagsAsInvalid()
+    {
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+
+        File.WriteAllText(tempFile,
+            "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\n" +
+            ",test@email.com,Support,High,Open,Alice,Email,Test ticket,2026-07-01 10:00:00,");
+
+        var result = service.ImportTicketsFromCsv(tempFile);
+
+        Assert.AreEqual(0, result.ValidRecords);
+        Assert.AreEqual(1, result.InvalidRecords);
+
+        File.Delete(tempFile);
+    }
+
+    [TestMethod]
+    public void ImportTicketsFromCsv_InvalidCreatedAt_FlagsAsInvalid()
+    {
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+
+        File.WriteAllText(tempFile,
+            "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\n" +
+            "Test User,test@email.com,Support,High,Open,Alice,Email,Test ticket,NOTADATE,");
+
+        var result = service.ImportTicketsFromCsv(tempFile);
+
+        Assert.AreEqual(0, result.ValidRecords);
+        Assert.AreEqual(1, result.InvalidRecords);
+
+        File.Delete(tempFile);
+    }
+
+    [TestMethod]
+    public void ImportTicketsFromCsv_MixedRecords_CountsCorrectly()
+    {
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+
+        File.WriteAllText(tempFile,
+            "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\n" +
+            "User1,test1@email.com,Support,High,Open,Alice,Email,Ticket1,2026-07-01 10:00:00,\n" +
+            "User2,,Support,High,Open,Alice,Email,Ticket2,2026-07-01 10:00:00,");
+
+        var result = service.ImportTicketsFromCsv(tempFile);
+
+        Assert.AreEqual(1, result.ValidRecords);
+        Assert.AreEqual(1, result.InvalidRecords);
+
+        File.Delete(tempFile);
+    }
+
+    [TestMethod]
+    public void GetDashboard_FilteredByPriority_ReturnsOnlyMatchingTickets()
+    {
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+
+        File.WriteAllText(tempFile,
+            "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\n" +
+            "User1,test@email.com,Support,High,Open,Alice,Email,Ticket1,2026-07-01 10:00:00,\n" +
+            "User2,test2@email.com,Billing,Low,Open,Bob,Phone,Ticket2,2026-07-02 10:00:00,");
+
+        service.ImportTicketsFromCsv(tempFile);
+
+        var filter = new TicketFilter
+        {
+            Priority = "High"
+        };
+
+        var dashboard = service.GetDashboard(filter);
+
+        Assert.AreEqual(1, dashboard.TotalTickets);
+
+        File.Delete(tempFile);
+    }
+
+    [TestMethod]
+    public void SlaReport_OpenTickets_AreNotCounted()
+    {
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+
+        File.WriteAllText(tempFile,
+            "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\n" +
+            "User1,test@email.com,Support,Critical,Open,Alice,Email,Ticket1,2026-07-01 10:00:00,");
+
+        service.ImportTicketsFromCsv(tempFile);
+
+        var report = service.GetSlaReport();
+
+        var compliance = report.GetType()
+            .GetProperty("CompliancePercentage")
+            ?.GetValue(report);
+
+        Assert.AreEqual(0.0, Convert.ToDouble(compliance));
+
+        File.Delete(tempFile);
+    }
+
+    [TestMethod]
+    public void UpdateTicketStatus_InvalidTicketId_ReturnsFalse()
+    {
+        var service = new TicketService();
+
+        var success = service.UpdateTicketStatus("INVALID-ID", "Resolved");
+
+        Assert.IsFalse(success);
+    }
 }

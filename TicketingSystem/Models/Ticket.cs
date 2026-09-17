@@ -17,6 +17,7 @@ public class Ticket
     public DateTime? ResolvedAt { get; set; }
     public bool IsValid { get; set; } = true;
     public string ValidationError { get; set; } = string.Empty;
+    public bool CreatedAtIsValid { get; set; } = true;
 
     // calculated properties
     public double ResponseTimeHours => FirstResponseAt.HasValue

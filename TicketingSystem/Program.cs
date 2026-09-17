@@ -3,6 +3,7 @@ using TicketingSystem.Services;
 
 namespace TicketingSystem;
 
+// original console proof-of-concept kept as an earlier version of the project
 class Program
 {
     private static readonly TicketService _service = new();
@@ -16,6 +17,7 @@ class Program
 
         bool running = true;
 
+        // keep showing the menu until the user chooses to exit
         while (running)
         {
             ShowMainMenu();
@@ -419,6 +421,7 @@ class Program
 
     static void LoadSampleData()
     {
+        // look for the sample csv from either the solution folder or project folder
         var samplePath = Path.Combine(
             Environment.CurrentDirectory,
             "TicketingSystem",

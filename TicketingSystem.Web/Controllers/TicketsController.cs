@@ -4,6 +4,7 @@ using TicketingSystem.Services;
 
 namespace TicketingSystem.Web.Controllers;
 
+// handles ticket filtering, details and status updates
 public class TicketsController : Controller
 {
     private readonly TicketService _ticketService;
@@ -20,6 +21,7 @@ public class TicketsController : Controller
         string? assignedTo,
         string? channel)
     {
+        // build the filter from the values selected on the tickets page
         var filter = new TicketFilter
         {
             Category = category,
@@ -31,6 +33,7 @@ public class TicketsController : Controller
 
         var tickets = _ticketService.GetTickets(filter);
 
+        // keep the selected values visible when the filtered page reloads
         ViewBag.Category = category;
         ViewBag.Priority = priority;
         ViewBag.Status = status;
@@ -49,6 +52,7 @@ public class TicketsController : Controller
             return NotFound();
         }
 
+        // load the available ticket history for the details page
         ViewBag.History = _ticketService.GetTicketHistory(id);
 
         return View(ticket);
@@ -58,6 +62,7 @@ public class TicketsController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult UpdateStatus(string id, string newStatus)
     {
+        // reject incomplete status update requests before calling the service
         if (string.IsNullOrWhiteSpace(id) ||
             string.IsNullOrWhiteSpace(newStatus))
         {

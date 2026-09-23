@@ -15,6 +15,8 @@ public class TicketsController : Controller
     }
 
     public IActionResult Index(
+        DateTime? startDate,
+        DateTime? endDate,
         string? category,
         string? priority,
         string? status,
@@ -24,6 +26,8 @@ public class TicketsController : Controller
         // build the filter from the values selected on the tickets page
         var filter = new TicketFilter
         {
+            StartDate = startDate,
+            EndDate = endDate,
             Category = category,
             Priority = priority,
             Status = status,
@@ -34,6 +38,12 @@ public class TicketsController : Controller
         var tickets = _ticketService.GetTickets(filter);
 
         // keep the selected values visible when the filtered page reloads
+        ViewBag.StartDate =
+            startDate?.ToString("yyyy-MM-dd");
+
+        ViewBag.EndDate =
+            endDate?.ToString("yyyy-MM-dd");
+
         ViewBag.Category = category;
         ViewBag.Priority = priority;
         ViewBag.Status = status;

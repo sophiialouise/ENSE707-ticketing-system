@@ -134,14 +134,14 @@ public class TicketService
         {
             error = "Category is required.";
         }
-        else if (ticket.ResolvedAt.HasValue &&
-                 ticket.ResolvedAt.Value < ticket.CreatedAt)
-        {
-            error = "Resolved time cannot be before created time.";
-        }
         else if (!ticket.CreatedAtIsValid)
         {
             error = "Created time is invalid or missing.";
+        }
+        else if (ticket.ResolvedAt.HasValue &&
+                ticket.ResolvedAt.Value < ticket.CreatedAt)
+        {
+            error = "Resolved time cannot be before created time.";
         }
 
         return string.IsNullOrEmpty(error);
@@ -157,14 +157,21 @@ public class TicketService
         {
             if (filter.StartDate.HasValue)
             {
+                var startDate = filter.StartDate.Value.Date;
+
                 query = query.Where(
-                    t => t.CreatedAt >= filter.StartDate.Value);
+                    t => t.CreatedAt >= startDate);
             }
 
             if (filter.EndDate.HasValue)
             {
+                // use the start of the following day so the selected
+                // end date includes tickets from the whole day
+                var endDateExclusive =
+                    filter.EndDate.Value.Date.AddDays(1);
+
                 query = query.Where(
-                    t => t.CreatedAt <= filter.EndDate.Value);
+                    t => t.CreatedAt < endDateExclusive);
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Category))

@@ -314,4 +314,29 @@ public class TicketServiceTests
 
         File.Delete(tempFile);
     }
+
+    [TestMethod]
+    public void ImportTicketsFromCsv_MissingCreatedAt_FlagsAsInvalid()
+    {
+        // arrange
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+
+        File.WriteAllText(
+            tempFile,
+            "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\n" +
+            "Test User,test@email.com,Support,High,Open,Alice,Email,Test ticket,,");
+
+        // act
+        var result = service.ImportTicketsFromCsv(tempFile);
+
+        // assert
+        Assert.AreEqual(0, result.ValidRecords);
+        Assert.AreEqual(1, result.InvalidRecords);
+        StringAssert.Contains(
+            result.Errors.First(),
+            "Created time");
+
+        File.Delete(tempFile);
+    }
 }

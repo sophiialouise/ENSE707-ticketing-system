@@ -289,4 +289,29 @@ public class TicketServiceTests
 
         Assert.IsFalse(success);
     }
+
+    [TestMethod]
+    public void GetDashboard_FilteredByAssignedTo_ReturnsOnlyMatchingTickets()
+    {
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+
+        File.WriteAllText(tempFile,
+            "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\n" +
+            "User1,test@email.com,Support,High,Open,Alice,Email,Ticket1,2026-07-01 10:00:00,\n" +
+            "User2,test2@email.com,Billing,Low,Open,Bob,Phone,Ticket2,2026-07-02 10:00:00,");
+
+        service.ImportTicketsFromCsv(tempFile);
+
+        var filter = new TicketFilter
+        {
+            AssignedTo = "Alice"
+        };
+
+        var dashboard = service.GetDashboard(filter);
+
+        Assert.AreEqual(1, dashboard.TotalTickets);
+
+        File.Delete(tempFile);
+    }
 }

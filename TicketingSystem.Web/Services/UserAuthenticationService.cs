@@ -15,40 +15,32 @@ public class UserAuthenticationService
     {
         _passwordHasher = passwordHasher;
 
-        var supportPassword =
-            configuration["DemoUsers:SupportPassword"];
+        var supportPasswordHash =
+            configuration["DemoUsers:SupportPasswordHash"];
 
-        var managerPassword =
-            configuration["DemoUsers:ManagerPassword"];
+        var managerPasswordHash =
+            configuration["DemoUsers:ManagerPasswordHash"];
 
-        if (string.IsNullOrWhiteSpace(supportPassword) ||
-            string.IsNullOrWhiteSpace(managerPassword))
+        if (string.IsNullOrWhiteSpace(supportPasswordHash) ||
+            string.IsNullOrWhiteSpace(managerPasswordHash))
         {
             throw new InvalidOperationException(
-                "Demo user passwords have not been configured.");
+                "Demo user password hashes have not been configured.");
         }
 
         var supportUser = new UserAccount
         {
             Username = "support",
-            Role = "Support"
+            Role = "Support",
+            PasswordHash = supportPasswordHash
         };
-
-        supportUser.PasswordHash =
-            _passwordHasher.HashPassword(
-                supportUser,
-                supportPassword);
 
         var managerUser = new UserAccount
         {
             Username = "manager",
-            Role = "Manager"
+            Role = "Manager",
+            PasswordHash = managerPasswordHash
         };
-
-        managerUser.PasswordHash =
-            _passwordHasher.HashPassword(
-                managerUser,
-                managerPassword);
 
         _users = new List<UserAccount>
         {

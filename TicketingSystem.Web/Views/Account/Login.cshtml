@@ -1,0 +1,90 @@
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-5">
+
+            <div class="card shadow-sm">
+
+                <div class="card-header">
+                    Sign In
+                </div>
+
+                <div class="card-body">
+
+                    <p class="text-muted">
+                        Sign in to access the ticketing system.
+                    </p>
+
+                    <form
+                        asp-controller="Account"
+                        asp-action="Login"
+                        method="post">
+
+                        <input
+                            type="hidden"
+                            name="returnUrl"
+                            value="@ViewBag.ReturnUrl" />
+
+                        <div
+                            asp-validation-summary="ModelOnly"
+                            class="text-danger mb-3">
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label
+                                for="username"
+                                class="form-label">
+                                Username
+                            </label>
+
+                            <input
+                                id="username"
+                                name="username"
+                                type="text"
+                                class="form-control"
+                                autocomplete="username"
+                                required />
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label
+                                for="password"
+                                class="form-label">
+                                Password
+                            </label>
+
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                class="form-control"
+                                autocomplete="current-password"
+                                required />
+
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary">
+                            Sign In
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

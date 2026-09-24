@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketingSystem.Models;
 using TicketingSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TicketingSystem.Web.Controllers;
 
 // displays dashboard totals and quality metrics from the ticket service
+[Authorize]
 public class DashboardController : Controller
 {
     private readonly TicketService _ticketService;

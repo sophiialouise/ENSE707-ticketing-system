@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketingSystem.Models;
 using TicketingSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TicketingSystem.Web.Controllers;
 
 // handles ticket filtering, details and status updates
+[Authorize]
 public class TicketsController : Controller
 {
     private readonly TicketService _ticketService;

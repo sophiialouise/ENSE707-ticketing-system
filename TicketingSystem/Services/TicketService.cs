@@ -134,14 +134,14 @@ public class TicketService
         {
             error = "Category is required.";
         }
-        else if (ticket.ResolvedAt.HasValue &&
-                 ticket.ResolvedAt.Value < ticket.CreatedAt)
-        {
-            error = "Resolved time cannot be before created time.";
-        }
         else if (!ticket.CreatedAtIsValid)
         {
             error = "Created time is invalid or missing.";
+        }
+        else if (ticket.ResolvedAt.HasValue &&
+                ticket.ResolvedAt.Value < ticket.CreatedAt)
+        {
+            error = "Resolved time cannot be before created time.";
         }
 
         return string.IsNullOrEmpty(error);
@@ -157,14 +157,21 @@ public class TicketService
         {
             if (filter.StartDate.HasValue)
             {
+                var startDate = filter.StartDate.Value.Date;
+
                 query = query.Where(
-                    t => t.CreatedAt >= filter.StartDate.Value);
+                    t => t.CreatedAt >= startDate);
             }
 
             if (filter.EndDate.HasValue)
             {
+                // use the start of the following day so the selected
+                // end date includes tickets from the whole day
+                var endDateExclusive =
+                    filter.EndDate.Value.Date.AddDays(1);
+
                 query = query.Where(
-                    t => t.CreatedAt <= filter.EndDate.Value);
+                    t => t.CreatedAt < endDateExclusive);
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Category))
@@ -369,6 +376,81 @@ public class TicketService
                 })
                 .ToList()
         };
+    }
+
+    /// exports filtered ticket data as csv.
+    /// requester details are included only when permission allows it.
+    public string ExportTicketsToCsv(
+        TicketFilter? filter = null,
+        bool includeRequesterDetails = false)
+    {
+        var tickets = GetTickets(filter);
+
+        using var writer =
+            new StringWriter(CultureInfo.InvariantCulture);
+
+        using var csv =
+            new CsvWriter(writer, CultureInfo.InvariantCulture);
+
+        csv.WriteField("TicketId");
+
+        if (includeRequesterDetails)
+        {
+            csv.WriteField("CustomerName");
+            csv.WriteField("CustomerEmail");
+        }
+
+        csv.WriteField("Category");
+        csv.WriteField("Priority");
+        csv.WriteField("Status");
+        csv.WriteField("AssignedTo");
+        csv.WriteField("Channel");
+        csv.WriteField("Description");
+        csv.WriteField("CreatedAt");
+        csv.WriteField("ResolvedAt");
+        csv.WriteField("ResponseTimeHours");
+        csv.WriteField("ResolutionTimeHours");
+        csv.WriteField("SlaMet");
+
+        csv.NextRecord();
+
+        foreach (var ticket in tickets)
+        {
+            csv.WriteField(ticket.Id);
+
+            if (includeRequesterDetails)
+            {
+                csv.WriteField(ticket.CustomerName);
+                csv.WriteField(ticket.CustomerEmail);
+            }
+
+            csv.WriteField(ticket.Category);
+            csv.WriteField(ticket.Priority);
+            csv.WriteField(ticket.Status);
+            csv.WriteField(ticket.AssignedTo);
+            csv.WriteField(ticket.Channel);
+            csv.WriteField(ticket.Description);
+
+            csv.WriteField(
+                ticket.CreatedAt.ToString(
+                    "yyyy-MM-dd HH:mm:ss"));
+
+            csv.WriteField(
+                ticket.ResolvedAt?.ToString(
+                    "yyyy-MM-dd HH:mm:ss") ?? string.Empty);
+
+            csv.WriteField(
+                ticket.ResponseTimeHours.ToString("F2"));
+
+            csv.WriteField(
+                ticket.ResolutionTimeHours.ToString("F2"));
+
+            csv.WriteField(ticket.IsSlaMet);
+
+            csv.NextRecord();
+        }
+
+        return writer.ToString();
     }
 
     /// returns the available history for a ticket.

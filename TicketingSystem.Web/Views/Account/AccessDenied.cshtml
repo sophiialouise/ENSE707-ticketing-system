@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="container mt-5">
+
+    <div class="alert alert-warning">
+
+        <h4>Access Denied</h4>
+
+        <p class="mb-0">
+            Your account does not have permission
+            to access this part of the system.
+        </p>
+
+    </div>
+
+    <a
+        asp-controller="Dashboard"
+        asp-action="Index"
+        class="btn btn-primary">
+        Return to Dashboard
+    </a>
+
+</div>

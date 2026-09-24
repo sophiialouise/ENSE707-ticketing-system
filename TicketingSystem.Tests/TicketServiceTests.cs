@@ -314,4 +314,83 @@ public class TicketServiceTests
 
         File.Delete(tempFile);
     }
+
+    [TestMethod]
+    public void ImportTicketsFromCsv_MissingCreatedAt_FlagsAsInvalid()
+    {
+        // arrange
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+
+        File.WriteAllText(
+            tempFile,
+            "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\n" +
+            "Test User,test@email.com,Support,High,Open,Alice,Email,Test ticket,,");
+
+        // act
+        var result = service.ImportTicketsFromCsv(tempFile);
+
+        // assert
+        Assert.AreEqual(0, result.ValidRecords);
+        Assert.AreEqual(1, result.InvalidRecords);
+        StringAssert.Contains(
+            result.Errors.First(),
+            "Created time");
+
+        File.Delete(tempFile);
+    }
+
+    [TestMethod]
+    public void ExportTicketsToCsv_SupportUser_ExcludesRequesterDetails()
+    {
+        // arrange
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+
+        File.WriteAllText(
+            tempFile,
+            "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\n" +
+            "Test User,test@email.com,Support,High,Open,Alice,Email,Test ticket,2026-07-01 10:00:00,");
+
+        service.ImportTicketsFromCsv(tempFile);
+
+        // act
+        var csv = service.ExportTicketsToCsv(
+            includeRequesterDetails: false);
+
+        // assert
+        Assert.IsFalse(csv.Contains("CustomerName"));
+        Assert.IsFalse(csv.Contains("CustomerEmail"));
+        Assert.IsFalse(csv.Contains("Test User"));
+        Assert.IsFalse(csv.Contains("test@email.com"));
+
+        File.Delete(tempFile);
+    }
+
+    [TestMethod]
+    public void ExportTicketsToCsv_ManagerUser_IncludesRequesterDetails()
+    {
+        // arrange
+        var service = new TicketService();
+        var tempFile = Path.GetTempFileName();
+
+        File.WriteAllText(
+            tempFile,
+            "CustomerName,CustomerEmail,Category,Priority,Status,AssignedTo,Channel,Description,CreatedAt,ResolvedAt\n" +
+            "Test User,test@email.com,Support,High,Open,Alice,Email,Test ticket,2026-07-01 10:00:00,");
+
+        service.ImportTicketsFromCsv(tempFile);
+
+        // act
+        var csv = service.ExportTicketsToCsv(
+            includeRequesterDetails: true);
+
+        // assert
+        StringAssert.Contains(csv, "CustomerName");
+        StringAssert.Contains(csv, "CustomerEmail");
+        StringAssert.Contains(csv, "Test User");
+        StringAssert.Contains(csv, "test@email.com");
+
+        File.Delete(tempFile);
+    }
 }

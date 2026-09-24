@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketingSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TicketingSystem.Web.Controllers;
 
 // handles csv file uploads from the web interface
+[Authorize(Roles = "Manager")]
 public class ImportController : Controller
 {
     private readonly TicketService _ticketService;

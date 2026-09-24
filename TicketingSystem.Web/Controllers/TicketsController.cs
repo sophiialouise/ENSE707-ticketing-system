@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketingSystem.Models;
 using TicketingSystem.Services;
+using Microsoft.AspNetCore.Authorization;
+using System.Text;
 
 namespace TicketingSystem.Web.Controllers;
 
 // handles ticket filtering, details and status updates
+[Authorize]
 public class TicketsController : Controller
 {
     private readonly TicketService _ticketService;
@@ -15,6 +18,8 @@ public class TicketsController : Controller
     }
 
     public IActionResult Index(
+        DateTime? startDate,
+        DateTime? endDate,
         string? category,
         string? priority,
         string? status,
@@ -24,6 +29,8 @@ public class TicketsController : Controller
         // build the filter from the values selected on the tickets page
         var filter = new TicketFilter
         {
+            StartDate = startDate,
+            EndDate = endDate,
             Category = category,
             Priority = priority,
             Status = status,
@@ -34,6 +41,12 @@ public class TicketsController : Controller
         var tickets = _ticketService.GetTickets(filter);
 
         // keep the selected values visible when the filtered page reloads
+        ViewBag.StartDate =
+            startDate?.ToString("yyyy-MM-dd");
+
+        ViewBag.EndDate =
+            endDate?.ToString("yyyy-MM-dd");
+
         ViewBag.Category = category;
         ViewBag.Priority = priority;
         ViewBag.Status = status;
@@ -41,6 +54,48 @@ public class TicketsController : Controller
         ViewBag.Channel = channel;
 
         return View(tickets);
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Support,Manager")]
+    public IActionResult Export(
+        DateTime? startDate,
+        DateTime? endDate,
+        string? category,
+        string? priority,
+        string? status,
+        string? assignedTo,
+        string? channel)
+    {
+        // apply the same filters used by the ticket list
+        var filter = new TicketFilter
+        {
+            StartDate = startDate,
+            EndDate = endDate,
+            Category = category,
+            Priority = priority,
+            Status = status,
+            AssignedTo = assignedTo,
+            Channel = channel
+        };
+
+        // managers may export requester details.
+        // support users receive privacy-restricted exports.
+        var includeRequesterDetails =
+            User.IsInRole("Manager");
+
+        var csv =
+            _ticketService.ExportTicketsToCsv(
+                filter,
+                includeRequesterDetails);
+
+        var fileName =
+            $"ticket-export-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+
+        return File(
+            Encoding.UTF8.GetBytes(csv),
+            "text/csv",
+            fileName);
     }
 
     public IActionResult Details(string id)

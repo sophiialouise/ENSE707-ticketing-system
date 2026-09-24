@@ -71,29 +71,37 @@ To load the provided sample tickets:
 
 The sample data can be used to demonstrate dashboard metrics, ticket filtering, ticket details, status updates, ticket history, and SLA calculations.
 
-## Current Prototype Features
+## Final Prototype Features
 
 - CSV ticket import and validation
 - valid and invalid record reporting
 - dashboard ticket metrics
+- dashboard filtering by date, assigned staff, category and channel
 - ticket listing and filtering
 - ticket details
 - ticket status updates
 - ticket history
 - response and resolution time calculations
 - SLA calculations
+- cookie-based authentication
+- Support and Manager role-based authorization
+- secure password hashing for prototype accounts
+- filtered CSV ticket export
+- privacy-aware export behaviour based on user role
 - automated MSTest coverage
 
-## Current Limitations
+## Current Prototype Limitations
 
-This is a mid-project prototype.
+The system is an academic prototype designed for local execution with sample data.
 
-The following planned features are not yet complete:
+Current limitations include:
 
-- login and role-based access
-- restricted export functionality
-- persistent database storage
-- some planned dashboard filters
+- ticket data is stored in memory and is lost when the application stops
+- prototype user accounts are locally configured rather than connected to a university identity provider
+- production deployment and institutional single sign-on are not implemented
+- HTTPS is not fully configured for the local development environment
+- high-volume concurrent-user operation has not been evaluated
+- broader performance, compatibility, usability and security testing will be completed as part of the remaining SQA activities
 
 ## Stopping the Application
 

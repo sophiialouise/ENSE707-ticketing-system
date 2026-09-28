@@ -134,6 +134,20 @@ public class TicketService
         {
             error = "Category is required.";
         }
+        else if (!new[] { "Critical", "High", "Medium", "Low" }
+            .Contains(
+                ticket.Priority,
+                StringComparer.OrdinalIgnoreCase))
+        {
+            error = "Unsupported priority value.";
+        }
+        else if (!new[] { "Open", "In Progress", "Resolved", "Closed" }
+            .Contains(
+                ticket.Status,
+                StringComparer.OrdinalIgnoreCase))
+        {
+            error = "Unsupported status value.";
+        }
         else if (!ticket.CreatedAtIsValid)
         {
             error = "Created time is invalid or missing.";
@@ -142,6 +156,30 @@ public class TicketService
                 ticket.ResolvedAt.Value < ticket.CreatedAt)
         {
             error = "Resolved time cannot be before created time.";
+        }
+        else if (
+            (ticket.Status.Equals(
+                "Resolved",
+                StringComparison.OrdinalIgnoreCase) ||
+            ticket.Status.Equals(
+                "Closed",
+                StringComparison.OrdinalIgnoreCase)) &&
+            !ticket.ResolvedAt.HasValue)
+        {
+            error =
+                "Resolved or closed tickets require a resolved time.";
+        }
+        else if (
+            (ticket.Status.Equals(
+                "Open",
+                StringComparison.OrdinalIgnoreCase) ||
+            ticket.Status.Equals(
+                "In Progress",
+                StringComparison.OrdinalIgnoreCase)) &&
+            ticket.ResolvedAt.HasValue)
+        {
+            error =
+                "Open or in-progress tickets cannot have a resolved time.";
         }
 
         return string.IsNullOrEmpty(error);
@@ -225,7 +263,14 @@ public class TicketService
 
         // only tickets with recorded timestamps are included in timing calculations
         var resolvedTickets = tickets
-            .Where(t => t.ResolvedAt.HasValue)
+            .Where(t =>
+                t.ResolvedAt.HasValue &&
+                (t.Status.Equals(
+                    "Resolved",
+                    StringComparison.OrdinalIgnoreCase) ||
+                t.Status.Equals(
+                    "Closed",
+                    StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
         var respondedTickets = tickets
@@ -328,9 +373,10 @@ public class TicketService
             ticket.FirstResponseAt = DateTime.Now;
         }
 
-        // resolved and closed tickets receive a completion timestamp
-        if (matchedStatus == "Resolved" ||
-            matchedStatus == "Closed")
+        // record the resolution time only the first time
+        // the ticket enters the Resolved state
+        if (matchedStatus == "Resolved" &&
+            !ticket.ResolvedAt.HasValue)
         {
             ticket.ResolvedAt = DateTime.Now;
         }
@@ -344,7 +390,14 @@ public class TicketService
         var tickets = GetTickets(filter);
 
         var resolved = tickets
-            .Where(t => t.ResolvedAt.HasValue)
+            .Where(t =>
+                t.ResolvedAt.HasValue &&
+                (t.Status.Equals(
+                    "Resolved",
+                    StringComparison.OrdinalIgnoreCase) ||
+                t.Status.Equals(
+                    "Closed",
+                    StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
         return new

@@ -1,13 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+<PropertyGroup>
   <TargetFramework>net10.0</TargetFramework>
   <LangVersion>latest</LangVersion>
   <ImplicitUsings>enable</ImplicitUsings>
   <Nullable>enable</Nullable>
+
   <OutputType>Exe</OutputType>
+
+  <EnableMSTestRunner>true</EnableMSTestRunner>
   <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
-  </PropertyGroup>
+
+  <TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
+</PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MSTest" Version="4.0.2" />

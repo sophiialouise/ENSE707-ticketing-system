@@ -197,4 +197,46 @@ public class TicketServiceAutomationTests
             0,
             Convert.ToInt32(totalResolved));
     }
+
+    [TestMethod]
+    public void ImportTicketsFromCsv_ResolvedWithoutResolvedAt_FlagsAsInvalid()
+    {
+        // arrange
+        var service = new TicketService();
+
+        var file = CreateCsv(
+            "Test User,test@email.com,Support,High,Resolved,Alice,Email,Test ticket,2026-07-01 10:00:00,");
+
+        // act
+        var result = service.ImportTicketsFromCsv(file);
+
+        // assert
+        Assert.AreEqual(0, result.ValidRecords);
+        Assert.AreEqual(1, result.InvalidRecords);
+
+        StringAssert.Contains(
+            result.Errors.First().ToLowerInvariant(),
+            "resolved time");
+    }
+
+    [TestMethod]
+    public void ImportTicketsFromCsv_OpenWithResolvedAt_FlagsAsInvalid()
+    {
+        // arrange
+        var service = new TicketService();
+
+        var file = CreateCsv(
+            "Test User,test@email.com,Support,High,Open,Alice,Email,Test ticket,2026-07-01 10:00:00,2026-07-01 14:00:00");
+
+        // act
+        var result = service.ImportTicketsFromCsv(file);
+
+        // assert
+        Assert.AreEqual(0, result.ValidRecords);
+        Assert.AreEqual(1, result.InvalidRecords);
+
+        StringAssert.Contains(
+            result.Errors.First().ToLowerInvariant(),
+            "resolved time");
+    }
 }

@@ -1,0 +1,113 @@
+name: ENSE707 CI Quality Gate
+
+on:
+  push:
+    branches:
+      - main
+      - assignment2-task5
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-smoke:
+    name: Build, Test and Smoke Check
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Display .NET version
+        run: dotnet --version
+
+      - name: Restore dependencies
+        run: dotnet restore TicketingSystem.slnx
+
+      - name: Build solution
+        run: >
+          dotnet build TicketingSystem.slnx
+          --configuration Release
+          --no-restore
+
+      - name: Run automated regression suite
+        shell: bash
+        run: |
+          set -o pipefail
+
+          dotnet run \
+            --project TicketingSystem.Tests/TicketingSystem.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --no-restore \
+            | tee test-output.txt
+
+      - name: Smoke test web application
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASPNETCORE_ENVIRONMENT=Development \
+          ASPNETCORE_URLS=http://127.0.0.1:5122 \
+          dotnet run \
+            --project TicketingSystem.Web/TicketingSystem.Web.csproj \
+            --configuration Release \
+            --no-build \
+            --no-restore \
+            --no-launch-profile \
+            > webapp.log 2>&1 &
+
+          APP_PID=$!
+
+          trap 'kill $APP_PID 2>/dev/null || true' EXIT
+
+          READY=false
+
+          for i in {1..20}; do
+            if curl \
+              --fail \
+              --silent \
+              --show-error \
+              http://127.0.0.1:5122/Account/Login \
+              -o login.html
+            then
+              READY=true
+              break
+            fi
+
+            sleep 1
+          done
+
+          if [ "$READY" != "true" ]; then
+            echo "Web application did not start successfully."
+            cat webapp.log
+            exit 1
+          fi
+
+          grep -q "Sign In" login.html
+
+          echo "Smoke test passed: login page loaded with expected content."
+
+      - name: Upload QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-evidence-${{ github.run_number }}
+          path: |
+            test-output.txt
+            webapp.log
+          if-no-files-found: ignore

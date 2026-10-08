@@ -11,6 +11,9 @@ public class TicketService
     private readonly List<Ticket> _tickets = new();
     private int _nextId = 1;
 
+    // the web app shares one service instance, so list access is locked (DEF11)
+    private readonly object _ticketLock = new();
+
     /// imports tickets from a csv file.
     public TicketImportResult ImportTicketsFromCsv(string filePath)
     {
@@ -32,7 +35,7 @@ public class TicketService
                 {
                     ticket.IsValid = true;
                     // assign an id only after the imported record has passed validation
-                    ticket.Id = $"TICKET-{_nextId++:D4}";
+                    ticket.Id = $"TICKET-{Interlocked.Increment(ref _nextId) - 1:D4}";
                     result.ValidTickets.Add(ticket);
                 }
                 else
@@ -48,7 +51,10 @@ public class TicketService
             result.InvalidRecords = result.InvalidTickets.Count;
 
             // add valid tickets to the system
-            _tickets.AddRange(result.ValidTickets);
+            lock (_ticketLock)
+            {
+                _tickets.AddRange(result.ValidTickets);
+            }
         }
         catch (Exception ex)
         {
@@ -188,7 +194,15 @@ public class TicketService
     /// returns tickets with optional filtering.
     public List<Ticket> GetTickets(TicketFilter? filter = null)
     {
-        var query = _tickets.AsQueryable();
+        // filter a snapshot so imports cannot change the list mid-query
+        List<Ticket> snapshot;
+
+        lock (_ticketLock)
+        {
+            snapshot = _tickets.ToList();
+        }
+
+        var query = snapshot.AsQueryable();
 
         // only apply filters that were supplied by the user
         if (filter != null)
@@ -329,10 +343,13 @@ public class TicketService
     /// returns a ticket using its id.
     public Ticket? GetTicketById(string id)
     {
-        return _tickets.FirstOrDefault(
-            t => t.Id.Equals(
-                id,
-                StringComparison.OrdinalIgnoreCase));
+        lock (_ticketLock)
+        {
+            return _tickets.FirstOrDefault(
+                t => t.Id.Equals(
+                    id,
+                    StringComparison.OrdinalIgnoreCase));
+        }
     }
 
     /// updates the status of a ticket.
@@ -442,8 +459,17 @@ public class TicketService
         using var writer =
             new StringWriter(CultureInfo.InvariantCulture);
 
+        // escape values starting with = + - @ so spreadsheets
+        // do not run them as formulas (DEF09)
+        var config = new CsvHelper.Configuration.CsvConfiguration(
+            CultureInfo.InvariantCulture)
+        {
+            InjectionOptions =
+                CsvHelper.Configuration.InjectionOptions.Escape
+        };
+
         using var csv =
-            new CsvWriter(writer, CultureInfo.InvariantCulture);
+            new CsvWriter(writer, config);
 
         csv.WriteField("TicketId");
 

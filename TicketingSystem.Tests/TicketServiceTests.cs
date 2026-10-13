@@ -121,7 +121,7 @@ public class TicketServiceTests
         var history = service.GetTicketHistory(ticketId);
 
         // assert
-        Assert.AreEqual(3, history.Count);
+        Assert.HasCount(3, history);
 
         var events = history
             .Select(h => h.GetType().GetProperty("Event")?.GetValue(h)?.ToString())
@@ -151,8 +151,13 @@ public class TicketServiceTests
         // assert
         Assert.IsNotNull(ticket?.FirstResponseAt);
         Assert.IsNotNull(ticket?.ResolvedAt);
-        Assert.IsTrue(ticket!.ResponseTimeHours >= 0);
-        Assert.IsTrue(ticket.ResolutionTimeHours >= ticket.ResponseTimeHours);
+        Assert.IsGreaterThanOrEqualTo(
+            0,
+            ticket!.ResponseTimeHours);
+
+        Assert.IsGreaterThanOrEqualTo(
+            ticket.ResponseTimeHours,
+            ticket.ResolutionTimeHours);
         File.Delete(tempFile);
     }
 
@@ -359,10 +364,10 @@ public class TicketServiceTests
             includeRequesterDetails: false);
 
         // assert
-        Assert.IsFalse(csv.Contains("CustomerName"));
-        Assert.IsFalse(csv.Contains("CustomerEmail"));
-        Assert.IsFalse(csv.Contains("Test User"));
-        Assert.IsFalse(csv.Contains("test@email.com"));
+        Assert.DoesNotContain("CustomerName", csv);
+        Assert.DoesNotContain("CustomerEmail", csv);
+        Assert.DoesNotContain("Test User", csv);
+        Assert.DoesNotContain("test@email.com", csv);
 
         File.Delete(tempFile);
     }

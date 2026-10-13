@@ -7,7 +7,7 @@ namespace TicketingSystem.Services;
 /// core service for managing tickets.
 public class TicketService
 {
-    // the mid-project prototype keeps ticket data in memory rather than a database
+    // the prototype keeps ticket data in memory rather than a database
     private readonly List<Ticket> _tickets = new();
     private int _nextId = 1;
 
